@@ -76,7 +76,7 @@ object DeltaLakeTest {
 
     upsert(INITIAL_ALBUM_DATA.toDF(), tableName, "overwrite")
     alterTests(spark, basePath, tableName)
-    query(spark, tableName)
+//    query(spark, tableName)
 
     /**
     query(spark, tableName)
@@ -246,7 +246,7 @@ object DeltaLakeTest {
 //    val newData = ALTER_COL_DATA.toDF()
     val newData = TYPE_CHANGE_DATA.toDF()
     newData.write.format("delta")
-      .option("mergeSchema", "true")
+//      .option("mergeSchema", "true")
       .option("overwriteSchema", "true")
       .mode("append")
       .save(s"$basePath/$tableName")
@@ -280,4 +280,3 @@ object DeltaLakeTest {
   }
 
 }
-

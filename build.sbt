@@ -1,50 +1,16 @@
 name := "delta-tutorial"
 
-organization := "org.bom4v.ti"
-
-organizationName := "Business Object Models for Verticals (BOM4V)"
-
-organizationHomepage := Some(url("http://github.com/bom4v"))
-
-version := "0.0.2-spark2.4"
-
-homepage := Some(url("https://github.com/bom4v/induction-data-lake"))
-
-startYear := Some(2019)
-
-description := "Delta Lake tutorial (in Scala and Python)"
-
-licenses += "Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")
-
-scmInfo := Some(
-  ScmInfo(
-    url("https://github.com/bom4v/induction-data-lake"),
-    "https://github.com/bom4v/induction-data-lake.git"
-  )
-)
-
-developers := List(
-  Developer(
-    id    = "denis.arnaud",
-    name  = "Denis Arnaud",
-    email = "denis.arnaud_ossrh@m4x.org",
-    url   = url("https://github.com/denisarnaud")
-  )
-)
-
-//useGpg := true
-
 scalaVersion := "2.11.12"
+version := "0.0.2-spark2.4"
 
 crossScalaVersions := Seq("2.11.12", "2.12.8")
 
 checksums in update := Nil
 
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.22.0"
-
 libraryDependencies += "org.specs2" %% "specs2-core" % "4.7.0" % "test"
-
-libraryDependencies += "io.delta" %% "delta-core" % "0.3.0"
+libraryDependencies += "io.delta" %% "delta-core" % "0.6.1"
+libraryDependencies += "org.antlr" % "antlr-runtime" % "3.5.2"
 libraryDependencies += "org.apache.xbean" % "xbean-asm6-shaded" % "4.10"
 
 // Spark
@@ -91,5 +57,3 @@ publishConfiguration := publishConfiguration.value.withOverwrite(true)
 publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
 
 cleanKeepFiles += target.value / "test-reports"
-
-
