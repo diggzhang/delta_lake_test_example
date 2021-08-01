@@ -1,4 +1,4 @@
-name := "delta-tutorial"
+name := "modou-dataset-example"
 
 scalaVersion := "2.11.12"
 version := "0.0.2-spark2.4"
@@ -12,6 +12,10 @@ libraryDependencies += "org.specs2" %% "specs2-core" % "4.7.0" % "test"
 libraryDependencies += "io.delta" %% "delta-core" % "0.6.1"
 libraryDependencies += "org.antlr" % "antlr-runtime" % "3.5.2"
 libraryDependencies += "org.apache.xbean" % "xbean-asm6-shaded" % "4.10"
+libraryDependencies += "io.delta" %% "delta-standalone" % "0.2.0"
+libraryDependencies += "org.rogach" %% "scallop" % "3.5.1"
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.24"
+
 
 // Spark
 libraryDependencies ++= (version.value match {
@@ -29,6 +33,14 @@ libraryDependencies ++= (version.value match {
   )
   case _ => Seq()
 })
+
+dependencyOverrides ++= {
+  Seq(
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.6.7.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.6.7"
+  )
+}
 
 javacOptions in Compile ++= Seq("-source", "1.8",  "-target", "1.8")
 

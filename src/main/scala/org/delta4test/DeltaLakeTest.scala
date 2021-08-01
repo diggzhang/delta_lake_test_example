@@ -15,7 +15,7 @@ import scala.reflect.io.Directory
 case class Album(albumId: Long, title: String, tracks: Array[String], updateDate: Long)
 case class AlbumAlterCol(albumId: Long, title: String, tracks: Array[String], updateDate: Long, isPub: Boolean)
 case class AlbumTypeChange(albumId: Long, title: Long, tracks: Array[String], updateDate: Long)
-
+case class orderEvents(id: String, eventTime: String)
 /**
  * Spark job aimed at testing basic features of Delta Lake.
  */
@@ -34,6 +34,9 @@ object DeltaLakeTest {
 //    Album(801, "old 2 Hail to the Thief", Array("2+2=5", "Backdrifts"), dateToLong("2019-12-01")),
     Album(802, "old 3 804", Array("2+2=5", "Backdrifts", "Go to sleep"), dateToLong("2019-12-01"))
   )
+  private val INITIAL_EVENT_DATA = Seq(
+    orderEvents("9", "yyyy-MM-dd HH:mm:ss.S")
+  )
   private val UPSERT_ALBUM_DATA = Seq(
 //    Album(800, "new 1 6 String Theory - Special", Array("Jumpin' the blues", "Bluesnote", "Birth of blues"), dateToLong("2020-01-03"))
 //    ,Album(801, "new 2 Special dupkey", Array("Jumpin' the blues", "Bluesnote", "Birth of blues"), dateToLong("2020-01-03"))
@@ -51,12 +54,13 @@ object DeltaLakeTest {
   )
 
   //  val basePath = "hdfs://localhost:9000/delta_test"
-  val basePath = "/tmp/delta_test"
+//  val basePath = "/tmp/delta_test"
+  val basePath = "/tmp/deltaLakeCacheZone"
 
 
 
   def main(args: Array[String]): Unit = {
-    clearDirectory()
+//    clearDirectory()
     val spark = org.apache.spark.sql.SparkSession
       .builder()
       .appName("DeltaLakeTest")
@@ -72,10 +76,15 @@ object DeltaLakeTest {
     // Create a table
     // Store the data into Delta Lake
     import spark.implicits._
-    val tableName = "delta_users2"
+//    val tableName = "delta_users2"
 
-    upsert(INITIAL_ALBUM_DATA.toDF(), tableName, "overwrite")
-    alterTests(spark, basePath, tableName)
+
+    val tableName = "orderEvents"
+//    upsert(INITIAL_EVENT_DATA.toDF(), tableName, "overwrite")
+    query(spark, tableName)
+
+//    upsert(INITIAL_ALBUM_DATA.toDF(), tableName, "overwrite")
+//    alterTests(spark, basePath, tableName)
 //    query(spark, tableName)
 
     /**
