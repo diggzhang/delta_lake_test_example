@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
  *  @param splitBy      - column by which to split source data while reading
  *  @param chunks       - to how many chunks split jdbc source data
  */
-case class ImportConfig(source: String, destination: String, splitBy: String, chunks: Int) {
+case class ImportConfig(source: String, destination: String, splitBy: String, chunks: Int, partitionBy: Tuple2[String, String]) {
   val bounds_sql = s"""
   (select min($splitBy) as lower_bound, max($splitBy) as upper_bound from $source) as bounds
   """
@@ -53,7 +53,7 @@ class JDBCImport(jdbcUrl: String,
     .fieldNames
 
   private lazy val sourceDataframe = readJDBCSourceInParallel()
-    .select(targetColumns.map(col): _*)
+//    .select(targetColumns.map(col): _*)
 
   /**
    * obtains lower and upper bound of source table and uses those values to read in a JDBC dataframe
@@ -83,12 +83,30 @@ class JDBCImport(jdbcUrl: String,
 
     def runTransform(): DataFrame = dataTransform.runTransform(sourceDataframe)
 
-    def writeToDelta(deltaTableToWrite: String): Unit = df
+    def writeToDelta(importConfig: ImportConfig): Unit = df
       .write
       .format("delta")
+      .option("mergeSchema", "true")
       .mode(SaveMode.Overwrite)
-      .save(deltaTableToWrite)
+      .partitionBy(importConfig.partitionBy._2)
+      .save(importConfig.destination)
 
+    def mergeToDelta(importConfig: ImportConfig) = {
+      val deltaTable: DeltaTable = io.delta.tables
+        .DeltaTable
+        .forPath(importConfig.destination)
+
+      deltaTable.as("old")
+        .merge(
+           df.as("new"),
+          "old.id=new.id"
+        )
+        .whenMatched()
+        .updateAll()
+        .whenNotMatched()
+        .insertAll()
+        .execute()
+    }
   }
 
   /**
@@ -97,7 +115,8 @@ class JDBCImport(jdbcUrl: String,
   def run(): Unit = {
     sourceDataframe
       .runTransform()
-      .writeToDelta(importConfig.destination)
+      .mergeToDelta(importConfig)
+//      .writeToDelta(importConfig)
   }
 }
 

@@ -1,6 +1,7 @@
 package org.delta4test
 
 
+import io.delta.tables.DeltaTable
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
@@ -22,11 +23,14 @@ object DatasetETL {
     val deltaLakeBasePath = "/tmp/deltaLakeCacheZone"
     val tableName = "orderEvents"
     val jdbcUrl = "jdbc:mysql://localhost:3306/etlSource?user=root&password=debezium"
+
     val config = ImportConfig(
       source = tableName,
       destination = s"$deltaLakeBasePath/$tableName",
       splitBy = "id",
-      chunks = 10)
+      chunks = 10,
+      partitionBy = ("eventTime"->"partitionTs")
+    )
 
     // define a transform to convert all timestamp columns to strings
     val timeStampsToStrings : DataFrame => DataFrame = source => {
@@ -37,15 +41,26 @@ object DatasetETL {
 
     // Whatever functions are passed to below transform will be applied during import
     val transforms = new DataTransforms(Seq(
-      df => df.withColumn("id", col("id").cast(types.StringType)), // cast id column to string
-      timeStampsToStrings // use transform defined above for timestamp conversion
+      df => df.withColumn("id", col("id").cast(types.StringType)) // cast id column to string
+      ,df => df.withColumn("partitionTs", col(config.partitionBy._1).substr(0, 10))
+      ,timeStampsToStrings // use transform defined above for timestamp conversion
     ))
-
 
     new JDBCImport(jdbcUrl = jdbcUrl, importConfig = config, dataTransform = transforms)
       .run()
+    query(spark, config.destination)
+
 
     spark.close()
+  }
+
+  def query(spark: SparkSession, destination: String) = {
+    val df = spark.read
+      .format("delta")
+      .option("mergeSchema", "true")
+      .load(s"$destination")
+    df.show(false)
+    df.printSchema()
   }
 
 }
